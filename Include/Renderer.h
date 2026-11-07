@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "Camera.h"
 #include <atomic>
 
 using Color = Vector3f;
@@ -20,4 +21,6 @@ private:
 
     // 原子类型，像素指针
     std::atomic<int> mCurrentPixelIndex = 0;
+
+    Camera mCamera;
 };

@@ -10,11 +10,21 @@ Renderer::Renderer(int w, int h)
     mViewportHeight = h;
 
     mCurrentPixelIndex = 0;
+
+    mCamera.Initialize(
+        Vector3f(0.0f, 0.0f, 5.0f),     // 相机位置
+        Vector3f(0.0f, 0.0f, 0.0f),     // 目标位置
+        Vector3f(0.0f, 1.0f, 0.0f),     // 上向量   
+        glm::radians(45.0f),            // FOV
+        0.1f,                           // 近裁剪面
+        1000.0f,                         // 远裁剪面
+        w, h
+    );
 }
 
 void Renderer::Run()
 {
-    struct mfb_window *window = mfb_open_ex("my display", mViewportWidth, mViewportHeight, MFB_WF_RESIZABLE);
+    struct mfb_window *window = mfb_open_ex("cppRenderer", mViewportWidth, mViewportHeight, MFB_WF_RESIZABLE);
     if (window == NULL)
         return;
 
@@ -53,6 +63,9 @@ void Renderer::Run()
 
 Color Renderer::RenderPixel(int x, int y)
 {
+    // 重点：GetRay() 函数
+    Ray ray = mCamera.GetRay(x, y);
+
     Color color;
     color.r = (float)x / mViewportWidth;
     color.g = 0.0f;
