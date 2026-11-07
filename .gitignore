@@ -1,0 +1,20 @@
+
+# CMake 构建目录
+build/
+cmake-build-*/
+
+# CMake 生成文件
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# 编译产生的文件
+*.o
+*.obj
+*.exe
+*.dll
+*.a
+
+# Visual Studio
+.vs/
