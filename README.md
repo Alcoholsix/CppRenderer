@@ -13,14 +13,16 @@
 3. 下载 minifb 库（显示简单的窗口）
     - 网址：https://github.com/emoon/minifb
 
-### Code demo ###
-```cpp
-#include <iostream>
+### git 提交命令 ###
+```powershell
+# 将更新加入缓存区
+git add -A
 
-int main()
-{
-    std::cout << "Hello world!" << endl;
-}
+# 创建一个本地版本记录
+git commit -m "本次记录提交名称"
+
+# 提交到 GitHub 仓库
+git push
 ```
 
 ## minifb 测试代码 ##

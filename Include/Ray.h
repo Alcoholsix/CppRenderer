@@ -2,6 +2,13 @@
 
 #include "Common.h"
 
+struct Intersection
+{
+    Vector3f position;  // 交点位置
+    Vector3f normal;    // 焦点法线
+    float t;            // 射线参数 t 值，即焦点到射线的位置
+};
+
 struct Ray
 {
     Vector3f o;
@@ -11,3 +18,13 @@ struct Ray
     float maxt = FLT_MAX;
 };
 
+inline Ray operator*(const Matrix4x4 &m, const Ray &r)
+{
+    Ray result;
+    result.o = Vector3f(m * Vector4f(r.o, 1.0f));
+    result.d = Vector3f(m * Vector4f(r.d, 0.0f));
+    result.mint = r.mint;
+    result.maxt = r.maxt;
+
+    return result;
+}

@@ -12,14 +12,18 @@ Renderer::Renderer(int w, int h)
     mCurrentPixelIndex = 0;
 
     mCamera.Initialize(
-        Vector3f(0.0f, 0.0f, 5.0f),     // 相机位置
-        Vector3f(0.0f, 0.0f, 0.0f),     // 目标位置
+        Vector3f(0.0f, 0.0f, -2.0f),     // 相机位置
+        Vector3f(0.0f, 0.0f, 1.0f),     // 目标位置
         Vector3f(0.0f, 1.0f, 0.0f),     // 上向量   
-        glm::radians(45.0f),            // FOV
+        glm::radians(60.0f),            // FOV
         0.1f,                           // 近裁剪面
-        1000.0f,                         // 远裁剪面
+        1000.0f,                        // 远裁剪面
         w, h
     );
+
+    // 球型，圆盘
+    mSphere = new Sphere(Vector3f(-1.5f, -0.7f, 3.4f), 1.0f);
+    mDisk = new Disk(Vector3f(0, 2.0f, 5), Vector3f(PI / 2.0f, PI / 3.0f, PI), 1.0f);
 }
 
 void Renderer::Run()
@@ -66,12 +70,20 @@ Color Renderer::RenderPixel(int x, int y)
     // 重点：GetRay() 函数
     Ray ray = mCamera.GetRay(x, y);
 
-    Color color;
-    color.r = (float)x / mViewportWidth;
-    color.g = 0.0f;
-    color.b = 1.0f - (float)y / mViewportHeight;
+    Intersection isect;
 
-    return color;
+    Color color;
+    // color.r = (float)x / mViewportWidth;
+    // color.g = 0.0f;
+    // color.b = 1.0f - (float)y / mViewportHeight;
+    
+    if (mDisk->Intersect(ray, isect))
+    {
+        color = isect.normal * 0.5f + 0.5f;     // 打印法线，显示颜色
+        return color;
+    }
+
+    return Color(0, 0, 0);
 }
 
 

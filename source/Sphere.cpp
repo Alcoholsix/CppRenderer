@@ -1,0 +1,46 @@
+#include "Sphere.h"
+
+Sphere::Sphere(const Vector3f &center, float R)
+    : mRadius(R)
+{
+    mObjectToWorld = MakeWorldTransform(center, Vector3f(0, 0, 0), 1.0f);
+    mWorldToObject = glm::inverse(mObjectToWorld);
+}
+
+bool Sphere::Intersect(Ray ray, Intersection &isect) const
+{
+    // ray 转到球体的局部空间
+    Ray r = mWorldToObject * ray;
+    float A = glm::dot(r.d, r.d);
+    float B = 2.0f * glm::dot(r.d, r.o);
+    float C = glm::dot(r.o, r.o) - mRadius * mRadius;
+
+    float delta = B * B - 4.0f * A * C;
+    if (delta < 0.0f)  return false;
+
+    float sqrtDelta = sqrtf(delta);
+    float t1 = (-B - sqrtDelta) / (2.0f * A);
+    float t2 = (-B + sqrtDelta) / (2.0f * A);
+
+    // t1 一定小于 t2
+    if (t2 < r.mint)    return false;
+    if (t1 > r.maxt)    return false;
+
+    // 保证取到存在 mint 和 maxt 中的 t 的最小值
+    float t = t1;
+    if (t < r.mint)
+    {
+        t = t2;
+        if (t > r.maxt) return false;
+    }
+    
+    Vector3f p = r.o + t * r.d;         // 局部空间的交点位置
+    Vector3f n = glm::normalize(p);     // 交点的法线
+
+    // 返回世界坐标系的数值
+    isect.position = Vector3f(mObjectToWorld * Vector4f(p, 1.0f));
+    isect.normal = glm::normalize(Vector3f(mObjectToWorld * Vector4f(n, 0.0f)));
+    isect.t = t;
+
+    return true;
+}

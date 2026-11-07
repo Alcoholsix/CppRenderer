@@ -1,7 +1,9 @@
 #pragma once
+#include <atomic>
 #include "Common.h"
 #include "Camera.h"
-#include <atomic>
+#include "Sphere.h"
+#include "Disk.h"
 
 using Color = Vector3f;
 
@@ -23,4 +25,7 @@ private:
     std::atomic<int> mCurrentPixelIndex = 0;
 
     Camera mCamera;
+
+    Sphere* mSphere;
+    Disk* mDisk;
 };
