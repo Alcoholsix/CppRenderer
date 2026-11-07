@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include <atomic>
 
 using Color = Vector3f;
 
@@ -16,4 +17,7 @@ private:
     int mViewportWidth = 800;
     int mViewportHeight = 600;
     uint32_t* mBuffer = nullptr;
+
+    // 原子类型，像素指针
+    std::atomic<int> mCurrentPixelIndex = 0;
 };

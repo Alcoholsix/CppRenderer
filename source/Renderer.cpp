@@ -8,6 +8,8 @@ Renderer::Renderer(int w, int h)
 {
     mViewportWidth = w;
     mViewportHeight = h;
+
+    mCurrentPixelIndex = 0;
 }
 
 void Renderer::Run()
@@ -24,7 +26,7 @@ void Renderer::Run()
     std::thread renderThread(&Renderer::RunRenderThread, this);
     renderThread.detach();                                          // 主线程结束后，子线程也结束
 
-    int numThreads = std::thread::hardware_concurrency();           // 返回计算机核心数 我的是 16 核
+    int numThreads = std::thread::hardware_concurrency();           // 返回计算机核心数 我的是 16 线程
     std::vector<std::thread> renderThreads(numThreads);
     for (int i = 0; i < numThreads; i++)                            // 给每个核心创建一个线程
     {
@@ -56,9 +58,6 @@ Color Renderer::RenderPixel(int x, int y)
     color.g = 0.0f;
     color.b = 1.0f - (float)y / mViewportHeight;
 
-    // 模拟像素绘制时间
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
     return color;
 }
 
@@ -66,19 +65,21 @@ Color Renderer::RenderPixel(int x, int y)
 // 渲染线程的入口函数
 void Renderer::RunRenderThread()
 {
-    // 填充 buffer：
-    for(int y = 0; y < mViewportHeight; y++)
+    // 读取当前屏幕的下一个像素， 填充buffer
+    while (true)
     {
-        for (int x = 0; x < mViewportWidth; x++)
-        {
-            Color color = RenderPixel(x, y);
-            uint8_t r = glm::clamp((uint32_t)std::round(color.r * 255.0f), 0u, 255u);
-            uint8_t g = glm::clamp((uint32_t)std::round(color.g * 255.0f), 0u, 255u);
-            uint8_t b = glm::clamp((uint32_t)std::round(color.b * 255.0f), 0u, 255u);
-            uint8_t a = 255;
-            mBuffer[y * mViewportWidth + x] = (a << 24) | (r << 16) | (g << 8) | b;
-        }
-    }
+        int pixelIndex = mCurrentPixelIndex.fetch_add(1);           // 当前值加一，返回加前的数据
+        if (pixelIndex >= mViewportWidth * mViewportHeight)         // 超出屏幕范围退出
+            break;
 
-    // 读取当前屏幕的下一个像素
+        int x = pixelIndex % mViewportWidth;
+        int y = pixelIndex / mViewportWidth;
+
+        Color color = RenderPixel(x, y);
+        uint8_t r = glm::clamp((uint32_t)std::round(color.r * 255.0f), 0u, 255u);
+        uint8_t g = glm::clamp((uint32_t)std::round(color.g * 255.0f), 0u, 255u);
+        uint8_t b = glm::clamp((uint32_t)std::round(color.b * 255.0f), 0u, 255u);
+        uint8_t a = 255;
+        mBuffer[y * mViewportWidth + x] = (a << 24) | (r << 16) | (g << 8) | b;
+    }
 }
