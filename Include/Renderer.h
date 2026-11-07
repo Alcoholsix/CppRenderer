@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Sphere.h"
 #include "Disk.h"
+#include "Triangle.h"
 
 using Color = Vector3f;
 
@@ -28,4 +29,5 @@ private:
 
     Sphere* mSphere;
     Disk* mDisk;
+    Triangle* mTriangle;
 };

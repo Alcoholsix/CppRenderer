@@ -12,7 +12,7 @@ Renderer::Renderer(int w, int h)
     mCurrentPixelIndex = 0;
 
     mCamera.Initialize(
-        Vector3f(0.0f, 0.0f, -2.0f),     // 相机位置
+        Vector3f(0.0f, 0.0f, 0.0f),     // 相机位置
         Vector3f(0.0f, 0.0f, 1.0f),     // 目标位置
         Vector3f(0.0f, 1.0f, 0.0f),     // 上向量   
         glm::radians(60.0f),            // FOV
@@ -21,9 +21,11 @@ Renderer::Renderer(int w, int h)
         w, h
     );
 
-    // 球型，圆盘
+    // 球型，圆盘，三角形
     mSphere = new Sphere(Vector3f(-1.5f, -0.7f, 3.4f), 1.0f);
-    mDisk = new Disk(Vector3f(0, 2.0f, 5), Vector3f(PI / 2.0f, PI / 3.0f, PI), 1.0f);
+    mDisk = new Disk(Vector3f(0, 0, 5), Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
+    mTriangle = new Triangle(Vector3f(-1, 0, 0), Vector3f(0, 1, 0), Vector3f(1, 0, 0),
+                MakeWorldTransform(Vector3f(0, 0, 5), Vector3f(0, PI / 4.0f, PI / 3.0f), 1.5f));
 }
 
 void Renderer::Run()
@@ -67,23 +69,34 @@ void Renderer::Run()
 
 Color Renderer::RenderPixel(int x, int y)
 {
-    // 重点：GetRay() 函数
-    Ray ray = mCamera.GetRay(x, y);
+    // SSAA 超级采样算法，每个像素点取多次采样均值
+    static const int N = 64;
+    Color resultColor (0, 0, 0);
 
-    Intersection isect;
-
-    Color color;
-    // color.r = (float)x / mViewportWidth;
-    // color.g = 0.0f;
-    // color.b = 1.0f - (float)y / mViewportHeight;
-    
-    if (mDisk->Intersect(ray, isect))
+    for (int i = 0; i < N; i++)
     {
-        color = isect.normal * 0.5f + 0.5f;     // 打印法线，显示颜色
-        return color;
+        // (x, y) - (x+1, y+1) 范围内，随机采样一个点
+        float dx = x + glm::linearRand(0.0f, 1.0f);
+        float dy = y + glm::linearRand(0.0f, 1.0f);
+
+        Ray ray = mCamera.GetRay(dx, dy);
+        Intersection isect;
+        Color color(0, 0, 0);
+
+        color.r = (float)x / mViewportWidth;
+        color.g = 0.0f;
+        color.b = 1.0f - (float)y / mViewportHeight;
+
+        if (mSphere->Intersect(ray, isect) ||
+            mTriangle->Intersect(ray, isect) ||
+            mDisk->Intersect(ray, isect))
+        {
+            color = isect.normal * 0.5f + 0.5f;
+        }
+        resultColor += color / (float)N;
     }
 
-    return Color(0, 0, 0);
+    return resultColor;
 }
 
 
