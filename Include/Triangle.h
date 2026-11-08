@@ -10,6 +10,7 @@ private:
     Vector3f mNormal;           // 三角形法线
 
 public:
-    Triangle(const Vector3f &v0, const Vector3f &v1, const Vector3f &v2, const Matrix4x4 worldMatrix);
+    // Triangle(const Vector3f &v0, const Vector3f &v1, const Vector3f &v2, const Matrix4x4 worldMatrix);
+    Triangle(SceneObject *pSceneObject, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2);
     virtual bool Intersect(Ray ray, Intersection &isect) const override;
 };

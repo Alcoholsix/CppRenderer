@@ -23,12 +23,41 @@ Renderer::Renderer(int w, int h)
         1000.0f,                        // 远裁剪面
         w, h
     );
-
+    /* ******************************************************************************************
     // 球型，圆盘，三角形
-    mSphere = new Sphere(Vector3f(-1.5f, -0.7f, 3.4f), 1.0f);
-    mDisk = new Disk(Vector3f(0, 0, 5), Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
-    mTriangle = new Triangle(Vector3f(-1, 0, 0), Vector3f(0, 1, 0), Vector3f(1, 0, 0),
+    auto pSphere = new Sphere(Vector3f(-1.5f, -0.7f, 3.4f), 1.0f);
+    auto pDisk = new Disk(Vector3f(0, 0, 5), Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
+    auto pTriangle = new Triangle(Vector3f(-1, 0, 0), Vector3f(0, 1, 0), Vector3f(1, 0, 0),
                 MakeWorldTransform(Vector3f(0, 0, 5), Vector3f(0, PI / 4.0f, PI / 3.0f), 1.5f));
+
+    mPrimitives.push_back(pSphere);
+    mPrimitives.push_back(pDisk);
+    mPrimitives.push_back(pTriangle);
+    ****************************************************************************************** */
+   
+    // 矩形，两个三角形拼凑而成
+    mTestSceneObject = new SceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
+
+    auto pTriangle1 = new Triangle(mTestSceneObject, Vector3f(-1, -1, 0), Vector3f(1, -1, 0), Vector3f(1, 1, 0));
+    auto pTriangle2 = new Triangle(mTestSceneObject, Vector3f(-1, -1, 0), Vector3f(1, 1, 0), Vector3f(-1, 1, 0));
+
+    
+
+    mTestSceneObject->AddPrimitive(pTriangle1);
+    mTestSceneObject->AddPrimitive(pTriangle2);
+}
+
+/**
+ * Renderer 的析构函数，函数结束后会自动调用
+ * 这里用来释放构建完图形后的指针
+ */
+Renderer::~Renderer()
+{
+    if (mTestSceneObject)
+    {
+        delete mTestSceneObject;
+        mTestSceneObject = nullptr;
+    }
 }
 
 /**
@@ -48,7 +77,8 @@ void Renderer::Run()
     std::thread renderThread(&Renderer::RunRenderThread, this);
     renderThread.detach();                                          // 主线程结束后，子线程也结束
 
-    int numThreads = std::thread::hardware_concurrency();           // 返回计算机核心数 我的是 16 线程
+    int numThreads = std::thread::hardware_concurrency() - 6;           // 返回计算机核心数 16 - 6
+    std::cout << "Work Hardware concurrency: " << numThreads << std::endl;
     std::vector<std::thread> renderThreads(numThreads);
     for (int i = 0; i < numThreads; i++)                            // 给每个核心创建一个线程
     {
@@ -112,7 +142,7 @@ void Renderer::Run()
 Color Renderer::RenderPixel(int x, int y)
 {
     // SSAA 超级采样算法，每个像素点取多次采样均值
-    static const int N = 64;
+    static const int N = 32;
     Color resultColor (0, 0, 0);
 
     for (int i = 0; i < N; i++)
@@ -137,11 +167,41 @@ Color Renderer::RenderSubPixel(float x, float y)
     Intersection isect;
     Color color(0, 0, 0);
 
-    if (mSphere->Intersect(ray, isect) ||
-        mTriangle->Intersect(ray, isect) ||
-        mDisk->Intersect(ray, isect))
+    color.r = (float)x / mViewportWidth;
+    color.g = 0.0f;
+    color.b = 1.0f - (float)y / mViewportHeight;
+
+    // for (const auto &Primitive : mPrimitives)
+    // {
+    //     if (Primitive->Intersect(ray, isect))
+    //     {
+    //         color = isect.normal * 0.5f + 0.5f;
+    //         break;
+    //     }
+    // }
+
+    // 屏幕上最先绘制靠近屏幕的内容，即返回t值最小
+    /* *****************************************************************************************
+    bool bHit = false;
+    for (const auto &Primitive : mPrimitives)
     {
-             color = isect.normal * 0.5f + 0.5f;
+        if (Primitive->Intersect(ray, isect))
+        {
+            ray.maxt = isect.t;
+            bHit = true;
+        }
+    }
+
+    // 只有射线碰撞到，才返回颜色值
+    if (bHit)
+        color = isect.normal * 0.5f + 0.5f;
+
+    return color;
+    ***************************************************************************************** */
+
+    if (mTestSceneObject->Intersect(ray, isect))
+    {
+        color = isect.normal * 0.5f + 0.5f;
     }
 
     return color;

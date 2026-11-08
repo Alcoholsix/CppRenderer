@@ -1,5 +1,7 @@
 #pragma once
 #include <atomic>
+#include <vector>
+
 #include "Common.h"
 #include "Camera.h"
 #include "Sphere.h"
@@ -12,6 +14,8 @@ class Renderer
 {
 public:
     Renderer(int w, int h);
+    virtual ~Renderer();
+
     void Run();
 
 private:
@@ -31,4 +35,7 @@ private:
     Sphere* mSphere;
     Disk* mDisk;
     Triangle* mTriangle;
+
+    // std::vector<Primitive*> mPrimitives;        // 场景中的所有集合体
+    SceneObject *mTestSceneObject = nullptr;
 };

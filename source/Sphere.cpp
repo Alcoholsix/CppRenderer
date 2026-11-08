@@ -1,16 +1,17 @@
 #include "Sphere.h"
+#include "SceneObject.h"
 
-Sphere::Sphere(const Vector3f &center, float R)
-    : mRadius(R)
+Sphere::Sphere(SceneObject *pSceneObject, float R)
+    : Primitive(pSceneObject)
 {
-    mObjectToWorld = MakeWorldTransform(center, Vector3f(0, 0, 0), 1.0f);
-    mWorldToObject = glm::inverse(mObjectToWorld);
+    
 }
 
 bool Sphere::Intersect(Ray ray, Intersection &isect) const
 {
     // ray 转到球体的局部空间
-    Ray r = mWorldToObject * ray;
+    Ray r = m_pSceneObject->GetWorldToObject() * ray;
+
     float A = glm::dot(r.d, r.d);
     float B = 2.0f * glm::dot(r.d, r.o);
     float C = glm::dot(r.o, r.o) - mRadius * mRadius;
@@ -38,8 +39,8 @@ bool Sphere::Intersect(Ray ray, Intersection &isect) const
     Vector3f n = glm::normalize(p);     // 交点的法线
 
     // 返回世界坐标系的数值
-    isect.position = Vector3f(mObjectToWorld * Vector4f(p, 1.0f));
-    isect.normal = glm::normalize(Vector3f(mObjectToWorld * Vector4f(n, 0.0f)));
+    isect.position = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f));
+    isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(n, 0.0f)));
     isect.t = t;
 
     return true;

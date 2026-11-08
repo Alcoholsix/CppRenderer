@@ -1,17 +1,32 @@
 #include "Triangle.h"
+#include "SceneObject.h"
 
-Triangle::Triangle(const Vector3f &v0, const Vector3f &v1, 
-        const Vector3f &v2, const Matrix4x4 worldMatrix)
+// Triangle::Triangle(const Vector3f &v0, const Vector3f &v1, 
+//         const Vector3f &v2, const Matrix4x4 worldMatrix)
+// {
+//     mVertices[0] = Vector3f(worldMatrix * Vector4f(v0, 1.0f));
+//     mVertices[1] = Vector3f(worldMatrix * Vector4f(v1, 1.0f));
+//     mVertices[2] = Vector3f(worldMatrix * Vector4f(v2, 1.0f));
+//     // 计算三角形的法线
+//     Vector3f edge1 = mVertices[1] - mVertices[0];
+//     Vector3f edge2 = mVertices[2] - mVertices[0];
+//     mNormal = glm::normalize(glm::cross(edge1, edge2));
+// }
+
+Triangle::Triangle(SceneObject *pSceneObject, const Vector3f &v0, const Vector3f &v1, const Vector3f &v2)
+    : Primitive(pSceneObject)
 {
+    Matrix4x4 worldMatrix = pSceneObject->GetObjectToWorld();
+
     mVertices[0] = Vector3f(worldMatrix * Vector4f(v0, 1.0f));
     mVertices[1] = Vector3f(worldMatrix * Vector4f(v1, 1.0f));
     mVertices[2] = Vector3f(worldMatrix * Vector4f(v2, 1.0f));
+
     // 计算三角形的法线
     Vector3f edge1 = mVertices[1] - mVertices[0];
     Vector3f edge2 = mVertices[2] - mVertices[0];
     mNormal = glm::normalize(glm::cross(edge1, edge2));
 }
-
 bool Triangle::Intersect(Ray ray, Intersection &isect) const
 {
     Vector3f p0 = mVertices[0];
