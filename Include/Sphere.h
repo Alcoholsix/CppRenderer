@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Ray.h"
+#include "Primitive.h"
 
-class Sphere
+class Sphere : public Primitive
 {
 private:
     float mRadius;
@@ -11,6 +11,6 @@ private:
 
 public:
     Sphere(const Vector3f &center, float R);
-    bool Intersect(Ray ray, Intersection &isect) const;        // 判断图形与一个射线是否相交
+    virtual bool Intersect(Ray ray, Intersection &isect) const override;       // 判断图形与一个射线是否相交
 
 };

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Ray.h"
+#include "Primitive.h"
 
-class Triangle
+class Triangle : public Primitive
 {
 private:
     // 世界坐标系下

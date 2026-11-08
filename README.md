@@ -1,25 +1,44 @@
 # 项目名称
-    **c++ 从零打造渲染器**
+    C++ 从零打造渲染器
 
-# 项目简介 #
-2026年11月6日，跟着B站up主 “发财学长” 的 “c++从零打造渲染器” 项目进行练习。
+## 项目简介 ##
+2026年11月6日，跟着B站up主 “发财学长” 的 “c++从零打造渲染器” 系列教程进行 c++ 项目编程学习。<br> <!-- 这是换行标致 -->
+
+**视频链接：**[点击进入“发财学长”的教程链接](https://www.bilibili.com/video/BV1BMEs6UEp7?spm_id_from=333.788.videopod.sections&vd_source=e172ca534beb0a9ac941de57d86499ef)
+
+这个项目包含了两个开源库。源文件夹比较庞杂，你可以使用我的精简过的 数学库 和 显示窗口 库，删除了开发中用不到的冗余内容，精简但不会对使用造成任何影响。但是，依然建议光顾原项目仓库，**仓库地址**见下面的**下载安装内容**。
 
 ## 下载安装内容 ##
 1. 下载和安装 CMake
     - 网址：https://cmake.org
-    - 注意事项：勾选两个add选项
 2. 下载 GLM 库（数学库）
     - 网址：https://github.com/g-truc/glm
 3. 下载 minifb 库（显示简单的窗口）
     - 网址：https://github.com/emoon/minifb
 
-### git 提交命令 ###
+**在此之前，你得确保你已经配置好了C/C++开发环境。**
+
+### git 常用命令 ###
 ```powershell
+###############
+# git 项目创建 #
+###############
+
+# 初始化 git 仓库
+git init
+
+# 创建 git 忽略规则文件
+New-Item .gitignore -ItemType File
+
+###############
+# git 项目提交 #
+###############
+
 # 将更新加入缓存区
 git add -A
 
 # 创建一个本地版本记录
-git commit -m "本次记录提交名称"
+git commit -m "本次提交记录名称"
 
 # 提交到 GitHub 仓库
 git push
@@ -32,7 +51,7 @@ int main() {
     if (window == NULL)
         return 0;
 
-    uint32_t *buffer = malloc(800 * 600 * 4);
+    uint32_t *buffer = (uint32_t*)malloc(800 * 600 * 4);
 
     mfb_update_state state;
     do {
