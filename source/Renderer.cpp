@@ -4,6 +4,9 @@
 
 #include "Renderer.h"
 
+/**
+ * 相机和物体的调用方法
+ */
 Renderer::Renderer(int w, int h)
 {
     mViewportWidth = w;
@@ -28,6 +31,9 @@ Renderer::Renderer(int w, int h)
                 MakeWorldTransform(Vector3f(0, 0, 5), Vector3f(0, PI / 4.0f, PI / 3.0f), 1.5f));
 }
 
+/**
+ * 窗口绘制主程序
+ */
 void Renderer::Run()
 {
     struct mfb_window *window = mfb_open_ex("cppRenderer", mViewportWidth, mViewportHeight, MFB_WF_RESIZABLE);
@@ -67,6 +73,42 @@ void Renderer::Run()
     window = NULL;
 }
 
+// Color Renderer::RenderPixel(int x, int y)
+// {
+//     // SSAA 超级采样算法，每个像素点取多次采样均值
+//     static const int N = 64;
+//     Color resultColor (0, 0, 0);
+
+//     for (int i = 0; i < N; i++)
+//     {
+//         // (x, y) - (x+1, y+1) 范围内，随机采样一个点
+//         float dx = x + glm::linearRand(0.0f, 1.0f);
+//         float dy = y + glm::linearRand(0.0f, 1.0f);
+
+//         Ray ray = mCamera.GetRay(dx, dy);
+//         Intersection isect;
+//         Color color(0, 0, 0);
+
+//         color.r = (float)x / mViewportWidth;
+//         color.g = 0.0f;
+//         color.b = 1.0f - (float)y / mViewportHeight;
+
+//         if (mSphere->Intersect(ray, isect) ||
+//             mTriangle->Intersect(ray, isect) ||
+//             mDisk->Intersect(ray, isect))
+//         {
+//             color = isect.normal * 0.5f + 0.5f;
+//         }
+//         resultColor += color / (float)N;
+//     }
+
+//     return resultColor;
+// }
+
+/**
+ * ** 核心方法 **
+ * 像素渲染算法，实现 SSAA 超级采样算法
+ */
 Color Renderer::RenderPixel(int x, int y)
 {
     // SSAA 超级采样算法，每个像素点取多次采样均值
@@ -79,28 +121,35 @@ Color Renderer::RenderPixel(int x, int y)
         float dx = x + glm::linearRand(0.0f, 1.0f);
         float dy = y + glm::linearRand(0.0f, 1.0f);
 
-        Ray ray = mCamera.GetRay(dx, dy);
-        Intersection isect;
-        Color color(0, 0, 0);
-
-        color.r = (float)x / mViewportWidth;
-        color.g = 0.0f;
-        color.b = 1.0f - (float)y / mViewportHeight;
-
-        if (mSphere->Intersect(ray, isect) ||
-            mTriangle->Intersect(ray, isect) ||
-            mDisk->Intersect(ray, isect))
-        {
-            color = isect.normal * 0.5f + 0.5f;
-        }
+        Color color = RenderSubPixel(dx, dy);
         resultColor += color / (float)N;
     }
 
     return resultColor;
 }
 
+/**
+ * 计算当前颜色的方法
+ */
+Color Renderer::RenderSubPixel(float x, float y)
+{
+    Ray ray = mCamera.GetRay(x, y);
+    Intersection isect;
+    Color color(0, 0, 0);
 
-// 渲染线程的入口函数
+    if (mSphere->Intersect(ray, isect) ||
+        mTriangle->Intersect(ray, isect) ||
+        mDisk->Intersect(ray, isect))
+    {
+             color = isect.normal * 0.5f + 0.5f;
+    }
+
+    return color;
+}
+
+/**
+ * 渲染线程的入口函数
+ */
 void Renderer::RunRenderThread()
 {
     // 读取当前屏幕的下一个像素， 填充buffer

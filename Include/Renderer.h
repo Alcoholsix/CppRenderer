@@ -16,6 +16,7 @@ public:
 
 private:
     Color RenderPixel(int x, int y);
+    Color RenderSubPixel(float x, float y);
     void RunRenderThread();
 
     int mViewportWidth = 800;

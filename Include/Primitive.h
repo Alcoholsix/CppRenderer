@@ -7,5 +7,5 @@ class Primitive
 private:
 
 public:
-    virtual bool Intersect(Ray ray, Intersection isect) const = 0;
+    virtual bool Intersect(Ray ray, Intersection &isect) const = 0;
 };
