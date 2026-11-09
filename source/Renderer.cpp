@@ -1,52 +1,31 @@
 #include <MiniFB.h>
 #include <thread>
 #include <vector>
+#include <stdexcept>
 
 #include "Renderer.h"
 
 /**
  * 相机和物体的调用方法
  */
-Renderer::Renderer(int w, int h)
-    : mViewportWidth(w), mViewportHeight(h)
+Renderer::Renderer(int w, int h, const std::string path)
+    : mViewportWidth(w), mViewportHeight(h), mFilePath(path)
 {
     mCurrentPixelIndex = 0;
-    mScene = new Scene();
-    
-    // 设置摄像机
-    Camera camera;
-    camera.Initialize(
-        Vector3f(0.0f, 0.0f, 0.0f),     // 相机位置
-        Vector3f(0.0f, 0.0f, 1.0f),     // 目标位置
-        Vector3f(0.0f, 1.0f, 0.0f),     // 上向量   
-        glm::radians(60.0f),            // FOV
-        0.1f,                           // 近裁剪面
-        1000.0f,                        // 远裁剪面
-        w, h
-    );
-    mScene->SetCamera(camera);
+    // mScene = new Scene();
+    mScene = Scene::LoadFromXML(mFilePath, w, h);
 
-    // 给场景添加物体
-    SceneObject *pSceneObject = mScene->CreateSceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
-    pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, -1, 0), Vector3f(1, 1, 0));
-    pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, 1, 0), Vector3f(-1, 1, 0));
-
-    SceneObject *pSceneObject2 = mScene->CreateSceneObject(Vector3f(0, 0, 2), Vector3f(0, 0, 0), 1.0f);
-    pSceneObject2->CreatePrimitive<Sphere>(0.5f);
+    if (!mScene)
+    {
+        throw std::runtime_error("Failed to load scene");
+    }
 }
 
 /**
  * Renderer 的析构函数，函数结束后会自动调用
  * 这里用来释放构建完图形后的指针
  */
-Renderer::~Renderer()
-{
-    if (mScene)
-    {
-        delete mScene;
-        mScene = nullptr;
-    }
-}
+Renderer::~Renderer() = default;
 
 /**
  * 窗口绘制主程序

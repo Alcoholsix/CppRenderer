@@ -19,10 +19,16 @@ target_include_directories(renderer PRIVATE
     ${PROJECT_SOURCE_DIR}/include
 )
 
+# 添加 TinyXML-2 源文件
+target_sources(renderer PRIVATE
+    "${CMAKE_SOURCE_DIR}/tinyxml2/tinyxml2.cpp"
+)
+
 # 头文件附加目录：minifb/include & glm
 target_include_directories(renderer PRIVATE
     "${CMAKE_SOURCE_DIR}/minifb/include"
     "${CMAKE_SOURCE_DIR}/glm"
+    "${CMAKE_SOURCE_DIR}/tinyxml2"
 )
 
 # 添加 minifb 到构建项目：

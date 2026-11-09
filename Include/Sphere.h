@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Primitive.h"
+#include "tinyxml2.h"
 
 class Sphere : public Primitive
 {

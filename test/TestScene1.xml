@@ -1,0 +1,35 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Scene>
+    <Camera>
+        <Position x="0" y="0" z="0"/>
+        <Target x="0" y="0" z="1"/>
+        <Up x="0" y="1" z="0"/>
+        <FOV value="60"/>
+        <Near value="0.1"/>
+        <Far value="1000"/>
+    </Camera>
+
+    <Objects>
+        <Object type="Sphere">
+            <Transform>
+                <Position x="0" y="0" z="2"/>
+                <Rotation x="0" y="0" z="0"/>
+                <Scale value="1"/>
+            </Transform>
+            <Radius value="0.2"/>
+        </Object>
+
+        <Object type="Triangle">
+            <Transform>
+                <Position x="0" y="0" z="5"/>
+                <Rotation x="0" y="0" z="0"/>
+                <Scale value="2"/>
+            </Transform>
+            <VertexA x="-1" y="-1" z="0"/>
+            <VertexB x="1" y="-1" z="0"/>
+            <VertexC x="1" y="1" z="0"/>
+        </Object>
+    </Objects>
+</Scene>

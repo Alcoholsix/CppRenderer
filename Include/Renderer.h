@@ -1,6 +1,8 @@
 #pragma once
 #include <atomic>
 #include <vector>
+#include <memory>
+#include <string>
 
 #include "Common.h"
 #include "Camera.h"
@@ -14,7 +16,7 @@ using Color = Vector3f;
 class Renderer
 {
 public:
-    Renderer(int w, int h);
+    Renderer(int w, int h, const std::string path);
     virtual ~Renderer();
 
     void Run();
@@ -31,5 +33,7 @@ private:
     // 原子类型，像素指针
     std::atomic<int> mCurrentPixelIndex = 0;
 
-    Scene *mScene = nullptr;
+    // Scene *mScene = nullptr;
+    std::unique_ptr<Scene> mScene;
+    std::string mFilePath;          // 读取 XML 文件的路径
 };

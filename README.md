@@ -6,7 +6,7 @@
 
 **视频链接：**[点击进入up主“发财学长”的B站教程](https://www.bilibili.com/video/BV1BMEs6UEp7?spm_id_from=333.788.videopod.sections&vd_source=e172ca534beb0a9ac941de57d86499ef)
 
-这个项目包含了两个开源库。源文件夹比较庞杂，你可以使用我的精简过的 数学库 和 显示窗口 库，删除了开发中用不到的冗余内容，精简但不会对使用造成任何影响。但是，依然建议光顾原项目仓库，**仓库地址**见下面的**下载安装内容**。
+这个项目包含了三个开源库。源文件夹比较庞杂，你可以使用我的精简过的 数学库 ， 显示窗口库 和 XML解析库，删除了开发中用不到的冗余内容，精简但不会对使用造成任何影响。但是，依然建议光顾原项目仓库，**仓库地址**见下面的**下载安装内容**。
 
 ## 下载安装内容 ##
 1. 下载和安装 CMake
@@ -15,6 +15,8 @@
     - 网址：https://github.com/g-truc/glm
 3. 下载 minifb 库（显示简单的窗口）
     - 网址：https://github.com/emoon/minifb
+4. 下载 TinyXML-2 库（轻量XML文件解析库）
+    - 网址：https://github.com/leethomason/tinyxml2
 
 **在此之前，你得确保你已经配置好了C/C++开发环境。**
 
