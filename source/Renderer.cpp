@@ -8,13 +8,14 @@
  * 相机和物体的调用方法
  */
 Renderer::Renderer(int w, int h)
+    : mViewportWidth(w), mViewportHeight(h)
 {
-    mViewportWidth = w;
-    mViewportHeight = h;
-
     mCurrentPixelIndex = 0;
-
-    mCamera.Initialize(
+    mScene = new Scene();
+    
+    // 设置摄像机
+    Camera camera;
+    camera.Initialize(
         Vector3f(0.0f, 0.0f, 0.0f),     // 相机位置
         Vector3f(0.0f, 0.0f, 1.0f),     // 目标位置
         Vector3f(0.0f, 1.0f, 0.0f),     // 上向量   
@@ -23,28 +24,15 @@ Renderer::Renderer(int w, int h)
         1000.0f,                        // 远裁剪面
         w, h
     );
-    /* ******************************************************************************************
-    // 球型，圆盘，三角形
-    auto pSphere = new Sphere(Vector3f(-1.5f, -0.7f, 3.4f), 1.0f);
-    auto pDisk = new Disk(Vector3f(0, 0, 5), Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
-    auto pTriangle = new Triangle(Vector3f(-1, 0, 0), Vector3f(0, 1, 0), Vector3f(1, 0, 0),
-                MakeWorldTransform(Vector3f(0, 0, 5), Vector3f(0, PI / 4.0f, PI / 3.0f), 1.5f));
+    mScene->SetCamera(camera);
 
-    mPrimitives.push_back(pSphere);
-    mPrimitives.push_back(pDisk);
-    mPrimitives.push_back(pTriangle);
-    ****************************************************************************************** */
-   
-    // 矩形，两个三角形拼凑而成
-    mTestSceneObject = new SceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
+    // 给场景添加物体
+    SceneObject *pSceneObject = mScene->CreateSceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
+    pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, -1, 0), Vector3f(1, 1, 0));
+    pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, 1, 0), Vector3f(-1, 1, 0));
 
-    auto pTriangle1 = new Triangle(mTestSceneObject, Vector3f(-1, -1, 0), Vector3f(1, -1, 0), Vector3f(1, 1, 0));
-    auto pTriangle2 = new Triangle(mTestSceneObject, Vector3f(-1, -1, 0), Vector3f(1, 1, 0), Vector3f(-1, 1, 0));
-
-    
-
-    mTestSceneObject->AddPrimitive(pTriangle1);
-    mTestSceneObject->AddPrimitive(pTriangle2);
+    SceneObject *pSceneObject2 = mScene->CreateSceneObject(Vector3f(0, 0, 2), Vector3f(0, 0, 0), 1.0f);
+    pSceneObject2->CreatePrimitive<Sphere>(0.5f);
 }
 
 /**
@@ -53,10 +41,10 @@ Renderer::Renderer(int w, int h)
  */
 Renderer::~Renderer()
 {
-    if (mTestSceneObject)
+    if (mScene)
     {
-        delete mTestSceneObject;
-        mTestSceneObject = nullptr;
+        delete mScene;
+        mScene = nullptr;
     }
 }
 
@@ -103,38 +91,6 @@ void Renderer::Run()
     window = NULL;
 }
 
-// Color Renderer::RenderPixel(int x, int y)
-// {
-//     // SSAA 超级采样算法，每个像素点取多次采样均值
-//     static const int N = 64;
-//     Color resultColor (0, 0, 0);
-
-//     for (int i = 0; i < N; i++)
-//     {
-//         // (x, y) - (x+1, y+1) 范围内，随机采样一个点
-//         float dx = x + glm::linearRand(0.0f, 1.0f);
-//         float dy = y + glm::linearRand(0.0f, 1.0f);
-
-//         Ray ray = mCamera.GetRay(dx, dy);
-//         Intersection isect;
-//         Color color(0, 0, 0);
-
-//         color.r = (float)x / mViewportWidth;
-//         color.g = 0.0f;
-//         color.b = 1.0f - (float)y / mViewportHeight;
-
-//         if (mSphere->Intersect(ray, isect) ||
-//             mTriangle->Intersect(ray, isect) ||
-//             mDisk->Intersect(ray, isect))
-//         {
-//             color = isect.normal * 0.5f + 0.5f;
-//         }
-//         resultColor += color / (float)N;
-//     }
-
-//     return resultColor;
-// }
-
 /**
  * ** 核心方法 **
  * 像素渲染算法，实现 SSAA 超级采样算法
@@ -163,22 +119,13 @@ Color Renderer::RenderPixel(int x, int y)
  */
 Color Renderer::RenderSubPixel(float x, float y)
 {
-    Ray ray = mCamera.GetRay(x, y);
+    Ray ray = mScene->GetCamera().GetRay(x, y);
     Intersection isect;
     Color color(0, 0, 0);
 
     color.r = (float)x / mViewportWidth;
     color.g = 0.0f;
     color.b = 1.0f - (float)y / mViewportHeight;
-
-    // for (const auto &Primitive : mPrimitives)
-    // {
-    //     if (Primitive->Intersect(ray, isect))
-    //     {
-    //         color = isect.normal * 0.5f + 0.5f;
-    //         break;
-    //     }
-    // }
 
     // 屏幕上最先绘制靠近屏幕的内容，即返回t值最小
     /* *****************************************************************************************
@@ -191,7 +138,6 @@ Color Renderer::RenderSubPixel(float x, float y)
             bHit = true;
         }
     }
-
     // 只有射线碰撞到，才返回颜色值
     if (bHit)
         color = isect.normal * 0.5f + 0.5f;
@@ -199,7 +145,7 @@ Color Renderer::RenderSubPixel(float x, float y)
     return color;
     ***************************************************************************************** */
 
-    if (mTestSceneObject->Intersect(ray, isect))
+    if (mScene->Intersect(ray, isect))
     {
         color = isect.normal * 0.5f + 0.5f;
     }

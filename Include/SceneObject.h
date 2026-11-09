@@ -29,5 +29,15 @@ public:
         mPrimitives.push_back(primitive);
     }
 
+    // 教程说这种写法看起来更高级，显得牛逼 :)
+    template<typename T, typename...Args>       // 参数 T 和可变参数列表 Args
+    T *CreatePrimitive(Args&&... args)
+    {
+        T *Primitive = new T(this, std::forward<Args>(args)...);
+        mPrimitives.push_back(Primitive);
+
+        return Primitive;
+    }
+
     virtual ~SceneObject();
 };

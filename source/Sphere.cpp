@@ -2,7 +2,7 @@
 #include "SceneObject.h"
 
 Sphere::Sphere(SceneObject *pSceneObject, float R)
-    : Primitive(pSceneObject)
+    : Primitive(pSceneObject), mRadius(R)
 {
     
 }
