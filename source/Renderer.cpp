@@ -15,6 +15,12 @@ Renderer::Renderer(int w, int h, const std::string path)
     // mScene = new Scene();
     mScene = Scene::LoadFromXML(mFilePath, w, h);
 
+    // // 创建光源对象              ** 写到 XML 里面
+    // mScene->CreateLight<DirectionalLight>(Vector3f(-1, -1, -1), Color(1, 1, 1));    // 白色平行光
+    // // 绿色点光源，衰减系数为1
+    // mScene->CreateLight<PointLight>(Vector3f(0, 5, 0), Color(0, 1.0f, 0), Vector3f(1.0f, 0.0f, 0.0f));
+
+
     if (!mScene)
     {
         throw std::runtime_error("Failed to load scene");
@@ -106,30 +112,40 @@ Color Renderer::RenderSubPixel(float x, float y)
     color.g = 0.0f;
     color.b = 1.0f - (float)y / mViewportHeight;
 
-    // 屏幕上最先绘制靠近屏幕的内容，即返回t值最小
-    /* *****************************************************************************************
-    bool bHit = false;
-    for (const auto &Primitive : mPrimitives)
-    {
-        if (Primitive->Intersect(ray, isect))
-        {
-            ray.maxt = isect.t;
-            bHit = true;
-        }
-    }
-    // 只有射线碰撞到，才返回颜色值
-    if (bHit)
-        color = isect.normal * 0.5f + 0.5f;
+    color = GetIrradiance(ray);
 
     return color;
-    ***************************************************************************************** */
+}
 
-    if (mScene->Intersect(ray, isect))
+Color Renderer::GetIrradiance(const Ray &ray)
+{
+    Intersection isect;
+    if (!mScene->Intersect(ray, isect))
+        return Color(0, 0, 0);
+    
+    // 遍历所有光源，对每一个光源求它的 irradiance
+    Color E(0, 0, 0);
+    for (Light *pLight : mScene->GetLights())
     {
-        color = isect.normal * 0.5f + 0.5f;
-    }
+        Vector3f sourcePos;
+        Color L = pLight->GetRadiance(isect.position, sourcePos);
 
-    return color;
+        // 构造求出 p 点到光源的位置 shadowRay
+        Ray shadowRay;
+        shadowRay.o = isect.position;
+        shadowRay.d = glm::normalize(sourcePos - isect.position);
+        shadowRay.mint = 1e-4f;                                     // 不能为零，防止自相交，给一个很小的值
+        shadowRay.maxt = glm::length(sourcePos - isect.position);
+
+        Intersection shadow_isect;
+        if (mScene->Intersect(shadowRay, shadow_isect))
+            continue;
+
+        float cosTheta = glm::dot(isect.normal, shadowRay.d);
+        E += L * glm::max(cosTheta, 0.0f);
+    }
+    
+    return E;
 }
 
 /**

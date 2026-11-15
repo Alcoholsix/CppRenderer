@@ -1,3 +1,7 @@
+/**
+ * 这个文件里的内容都是对 XML 文件的解析代码
+ * 由 AI 生成
+ */
 #include "Scene.h"
 #include "Sphere.h"
 #include "Triangle.h"
@@ -6,6 +10,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <cstring>
 
 using namespace tinyxml2;
 
@@ -49,6 +54,25 @@ namespace
                ReadFloat(element, "z", value.z);
     }
 
+    // 读取颜色
+    bool ReadColor(XMLElement *element, Color &color)
+    {
+        if (!element)
+        {
+            return false;
+        }
+
+        return ReadFloat(element, "r", color.r) &&
+               ReadFloat(element, "g", color.g) &&
+               ReadFloat(element, "b", color.b);
+    }
+
+    // 读取光源衰减系数
+    bool ReadAttenuations(XMLElement *element, Vector3f &attenuations)
+    {
+        return ReadVector3(element, attenuations);
+    }
+
     // 读取 Transform
     bool ReadTransform(XMLElement *object, Vector3f &position, Vector3f &rotation, float &scale)
     {
@@ -82,6 +106,126 @@ namespace
         {
             std::cerr << "XML Error: Scale must be greater than zero\n";
             return false;
+        }
+
+        return true;
+    }
+
+    // 加载光源
+    bool LoadLights(Scene *scene, XMLElement *lightsElement)
+    {
+        if (!lightsElement)
+        {
+            return true;
+        }
+
+        for (XMLElement *lightElement = lightsElement->FirstChildElement("Light");
+             lightElement;
+             lightElement = lightElement->NextSiblingElement("Light"))
+        {
+            const char *type = lightElement->Attribute("type");
+
+            if (!type)
+            {
+                std::cerr << "XML Error: Light is missing type attribute\n";
+                return false;
+            }
+
+            // ==================== Directional Light ====================
+            if (strcmp(type, "Directional") == 0)
+            {
+                Vector3f direction;
+                Color radiance;
+
+                if (!ReadVector3(GetRequiredElement(lightElement, "Direction"), direction) ||
+                    !ReadColor(GetRequiredElement(lightElement, "Radiance"), radiance))
+                {
+                    return false;
+                }
+
+                if (glm::length(direction) < 1e-6f)
+                {
+                    std::cerr << "XML Error: Directional light direction cannot be zero\n";
+                    return false;
+                }
+
+                scene->CreateLight<DirectionalLight>(direction, radiance);
+            }
+
+            // ==================== Point Light ====================
+            else if (strcmp(type, "Point") == 0)
+            {
+                Vector3f position;
+                Vector3f attenuations;
+                Color intensity;
+
+                if (!ReadVector3(GetRequiredElement(lightElement, "Position"), position) ||
+                    !ReadColor(GetRequiredElement(lightElement, "Intensity"), intensity) ||
+                    !ReadAttenuations(GetRequiredElement(lightElement, "Attenuations"), attenuations))
+                {
+                    return false;
+                }
+
+                if (attenuations.x < 0.0f || attenuations.y < 0.0f ||
+                    attenuations.z <= 0.0f)
+                {
+                    std::cerr << "XML Error: Invalid point light attenuation coefficients\n";
+                    return false;
+                }
+
+                scene->CreateLight<PointLight>(position, intensity, attenuations);
+            }
+
+            // ==================== Spot Light ====================
+            else if (strcmp(type, "Spot") == 0)
+            {
+                Vector3f position;
+                Vector3f direction;
+                Vector3f attenuations;
+                Color intensity;
+
+                float innerAngle;
+                float outerAngle;
+
+                if (!ReadVector3(GetRequiredElement(lightElement, "Position"), position) ||
+                    !ReadVector3(GetRequiredElement(lightElement, "Direction"), direction) ||
+                    !ReadColor(GetRequiredElement(lightElement, "Intensity"), intensity) ||
+                    !ReadFloat(GetRequiredElement(lightElement, "InnerAngle"), "value", innerAngle) ||
+                    !ReadFloat(GetRequiredElement(lightElement, "OuterAngle"), "value", outerAngle) ||
+                    !ReadAttenuations(GetRequiredElement(lightElement, "Attenuations"), attenuations))
+                {
+                    return false;
+                }
+
+                if (glm::length(direction) < 1e-6f)
+                {
+                    std::cerr << "XML Error: Spot light direction cannot be zero\n";
+                    return false;
+                }
+
+                if (innerAngle < 0.0f || outerAngle <= innerAngle || outerAngle >= 180.0f)
+                {
+                    std::cerr << "XML Error: Invalid spot light angles\n";
+                    return false;
+                }
+
+                if (attenuations.x < 0.0f || attenuations.y < 0.0f ||
+                    attenuations.z <= 0.0f)
+                {
+                    std::cerr << "XML Error: Invalid spot light attenuation coefficients\n";
+                    return false;
+                }
+
+                // XML 使用角度，构造函数接收弧度
+                scene->CreateLight<SpotLight>(position, direction, intensity,
+                    glm::radians(innerAngle), glm::radians(outerAngle), attenuations);
+            }
+
+            else
+            {
+                std::cerr << "XML Error: Unknown light type '" << type << "'\n";
+                return false;
+            }
         }
 
         return true;
@@ -151,7 +295,15 @@ std::unique_ptr<Scene> Scene::LoadFromXML(const std::string &filepath, int W, in
     camera.Initialize(cameraPosition, cameraTarget, cameraUp, glm::radians(fov), nearPlane, farPlane, W, H);
     scene->SetCamera(camera);
 
-    // 4. 加载 Objects
+    // 4. 加载 Lights
+    XMLElement *lightsElement = root->FirstChildElement("Lights");
+
+    if (!LoadLights(scene.get(), lightsElement))
+    {
+        return nullptr;
+    }
+
+    // 5. 加载 Objects
     XMLElement *objectsElement = GetRequiredElement(root, "Objects");
 
     if (!objectsElement)
@@ -195,6 +347,7 @@ std::unique_ptr<Scene> Scene::LoadFromXML(const std::string &filepath, int W, in
 
             object->CreatePrimitive<Sphere>(radius);
         }
+
         // Disk
         else if (strcmp(type, "Disk") == 0)
         {
@@ -208,6 +361,7 @@ std::unique_ptr<Scene> Scene::LoadFromXML(const std::string &filepath, int W, in
 
             object->CreatePrimitive<Disk>(radius);
         }
+
         // Triangle
         else if (strcmp(type, "Triangle") == 0)
         {
@@ -224,6 +378,7 @@ std::unique_ptr<Scene> Scene::LoadFromXML(const std::string &filepath, int W, in
 
             object->CreatePrimitive<Triangle>(v0, v1, v2);
         }
+
         else
         {
             std::cerr << "XML Error: Unknown object type '" << type << "'\n";

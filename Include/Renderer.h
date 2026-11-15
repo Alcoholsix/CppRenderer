@@ -11,8 +11,6 @@
 #include "Triangle.h"
 #include "Scene.h"
 
-using Color = Vector3f;
-
 class Renderer
 {
 public:
@@ -24,6 +22,7 @@ public:
 private:
     Color RenderPixel(int x, int y);
     Color RenderSubPixel(float x, float y);
+    Color GetIrradiance(const Ray& ray);    // 测试光线时临时构建的测试函数
     void RunRenderThread();
 
     int mViewportWidth = 800;

@@ -13,8 +13,13 @@ SceneObject *Scene::CreateSceneObject(const Vector3f &position, const Vector3f &
  */
 Scene::~Scene()
 {
+    // 销毁创建的物体指针
     for (SceneObject *pSceneObject : mSceneObjects)
         delete pSceneObject;
+    
+    // 销毁创建的灯光指针
+    for (Light *pLight : mLights)
+        delete pLight;
 }
 
 SceneObject *Scene::Intersect(Ray ray, Intersection &isect) const

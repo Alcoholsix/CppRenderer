@@ -16,6 +16,7 @@ using Vector4i = glm::ivec4;
 using Matrix3x3 = glm::mat3;
 using Matrix4x4 = glm::mat4;
 
+using Color = Vector3f;
 const float PI = glm::pi<float>();
 
 // 定义打印的方法

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Ray.h"
-#include "Renderer.h"
 
 class Light
 {
